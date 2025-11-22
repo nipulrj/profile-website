@@ -26,7 +26,7 @@ function AnimatedSection({ id, children, innerClass }, forwardedRef) {
       ref={elRef}
       aria-labelledby={`${id}-title`}
       role="region"
-      className={`min-h-screen flex items-center py-20 transition-all duration-700 ${
+      className={`min-h-screen w-full flex items-center py-20 transition-all duration-700 ${
         inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
       } bg-white dark:bg-slate-900`}
     >
@@ -55,7 +55,7 @@ function App() {
   }
 
   const projects = [
-    { id: 1, name: 'Image Carousel', description: 'Pretty images...coming right up!.', link: 'https://nipulrj.github.io/image-carousel/' },
+    { id: 1, name: 'Image Carousel', description: 'Pretty images...coming right up!', link: 'https://nipulrj.github.io/image-carousel/' },
     { id: 2, name: 'Pokédex', description: 'Curious about the many pocket monsters', link: 'https://nipulrj.github.io/pokedex-app/' },
     { id: 3, name: 'Card Game', description: "Ever played Flip7, it's quite fun!", link: 'https://nipulrj.github.io/flip7/' },
   ]
@@ -66,80 +66,116 @@ function App() {
       { id: 'projects', el: () => projectsRef.current },
       { id: 'contact', el: () => contactRef.current },
     ]
-    const obs = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(e => {
-          if (e.isIntersecting) {
-            const found = sections.find(s => s.el() === e.target)
-            if (found) setActiveTab(found.id)
-          }
-        })
-      },
-      { threshold: 0.45 }
-    )
-    sections.forEach(s => { const el = s.el(); if (el) obs.observe(el) })
-    return () => obs.disconnect()
-  }, [])
+  
+    function updateActiveTab() {
+      const mid = window.innerHeight / 2
+      let bestId = null
+      let bestDist = Infinity
+      sections.forEach(s => {
+        const el = s.el()
+        if (!el) return
+        const rect = el.getBoundingClientRect()
+        const center = rect.top + rect.height / 2
+        const dist = Math.abs(center - mid)
+        if (dist < bestDist) {
+          bestDist = dist
+          bestId = s.id
+        }
+      })
+      if (bestId && bestId !== activeTab) {
+        setActiveTab(bestId)
+      }
+    }
+
+    updateActiveTab()
+    window.addEventListener('scroll', updateActiveTab, { passive: true })
+    window.addEventListener('resize', updateActiveTab)
+    return () => {
+      window.removeEventListener('scroll', updateActiveTab)
+      window.removeEventListener('resize', updateActiveTab)
+    }
+  }, [activeTab])
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100">
-      <header className="bg-gradient-to-r from-indigo-600 to-rose-500 text-white">
+      <nav className="sticky top-0 bg-white/80 backdrop-blur-md z-10 dark:bg-slate-800/80">
+        <div className="flex justify-center" role="tablist" aria-label="Main">
+          <div className="flex gap-8 px-6 py-3">
+            <button
+              className={`font-semibold tracking-wider uppercase text-sm transition-all ${
+                activeTab === 'about'
+                  ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-b-indigo-600 dark:border-b-indigo-400'
+                  : 'text-slate-600 dark:text-slate-400 border-b-2 border-b-transparent hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+              onClick={() => scrollTo('about')}
+              role="tab"
+              aria-selected={activeTab === 'about'}
+            >
+              About
+            </button>
+
+            <button
+              className={`font-semibold tracking-wider uppercase text-sm transition-all ${
+                activeTab === 'projects'
+                  ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-b-indigo-600 dark:border-b-indigo-400'
+                  : 'text-slate-600 dark:text-slate-400 border-b-2 border-b-transparent hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+              onClick={() => scrollTo('projects')}
+              role="tab"
+              aria-selected={activeTab === 'projects'}
+            >
+              Projects
+            </button>
+
+            <button
+              className={`font-semibold tracking-wider uppercase text-sm transition-all ${
+                activeTab === 'contact'
+                  ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-b-indigo-600 dark:border-b-indigo-400'
+                  : 'text-slate-600 dark:text-slate-400 border-b-2 border-b-transparent hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+              onClick={() => scrollTo('contact')}
+              role="tab"
+              aria-selected={activeTab === 'contact'}
+            >
+              Contact
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <header className="bg-gradient-to-r from-slate-900 to-indigo-950 text-white">
         <div className="max-w-6xl mx-auto px-6 py-16">
           <div className="flex flex-col md:flex-row items-center gap-8">
-            <img src={profileImg} alt="Profile" className="w-30 h-32 rounded-full shadow-lg ring-4 ring-white/20" />
+            <img src={profileImg} alt="Profile" className="w-28 h-30 rounded-full shadow-lg ring-4 ring-white/20" />
             <div className="flex-1">
-              <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">Nipul Jayasekera</h1>
-              <p className="mt-2 text-lg opacity-90">Thoughtful website design and elegant digital experiences</p>
+              <h1 className="text-3xl font-semibold tracking-wider uppercase md:text-4xl tracking-tight">Nipul Jayasekera</h1>
+              <p className="mt-2 text-lg tracking-wider leading-relaxed opacity-90">Clean design. Seamless experience.</p>
             </div>
           </div>
         </div>
       </header>
 
-      <nav className="sticky top-0 bg-white/80 backdrop-blur-md z-10">
-        <div className="max-w-6xl mx-auto px-6 py-3 flex gap-3" role="tablist" aria-label="Main">
-          <button
-            className={`px-4 py-2 rounded-md font-medium ${activeTab === 'about' ? 'bg-indigo-600 text-white' : 'text-slate-700 hover:bg-slate-100'}`}
-            onClick={() => scrollTo('about')}
-            role="tab"
-            aria-selected={activeTab === 'about'}
-          >
-            About
-          </button>
-
-          <button
-            className={`px-4 py-2 rounded-md font-medium ${activeTab === 'projects' ? 'bg-indigo-600 text-white' : 'text-slate-700 hover:bg-slate-100'}`}
-            onClick={() => scrollTo('projects')}
-            role="tab"
-            aria-selected={activeTab === 'projects'}
-          >
-            Projects
-          </button>
-
-          <button
-            className={`px-4 py-2 rounded-md font-medium ${activeTab === 'contact' ? 'bg-indigo-600 text-white' : 'text-slate-700 hover:bg-slate-100'}`}
-            onClick={() => scrollTo('contact')}
-            role="tab"
-            aria-selected={activeTab === 'contact'}
-          >
-            Contact
-          </button>
-        </div>
-      </nav>
-
-      <main className="max-w-6xl mx-auto">
+      <main className="max-w mx-auto">
         <ForwardedAnimatedSection id="about" ref={aboutRef} innerClass="max-w-3xl mx-auto px-6">
-          <h2 id="about-title" className="text-2xl font-semibold mb-4">About</h2>
-          <p className="text-lg leading-relaxed mb-4">
-            I design and build polished web experiences focused on clarity, performance, and measurable impact.
-            I work across design systems, front‑end engineering, and product thinking to ship complete sites.
+          <h2 id="about-title" className="text-2xl font-semibold tracking-wider uppercase mb-4">About</h2>
+          <p className="text-lg leading-relaxed tracking-wider mb-4">
+            I’m a UCLA graduate in Linguistics and Computer Science with experience spanning from larger tech organizations and startups. Most recently, I worked at Ordr Inc. as a Senior Software Engineer, where I focused on frontend development, automation, and integrations. I also previously interned at Niara Inc. and Aruba Networks at Hewlett Packard Enterprise, establishing a solid base in software engineering and programming practices.
           </p>
-          <p className="text-lg leading-relaxed">
-            I enjoy collaborating from discovery to delivery and building products that scale.
+          <p className="text-lg tracking-wider leading-relaxed mb-4">
+            I design and build web experiences centered on impact. My work emcompasses modern front-end engineering & I enjoy collaborating closely with teams to create products that scale and deliver meaningful value.
+          </p>
+
+          <p className="text-lg tracking-wider leading-relaxed">
+            I’m eager to tackle new challenges and continue developing solutions in any area of Computer Science.
           </p>
         </ForwardedAnimatedSection>
 
-        <ForwardedAnimatedSection id="projects" ref={projectsRef} innerClass="px-6">
-          <h2 id="projects-title" className="text-2xl font-semibold mb-6">Selected Projects</h2>
+        <div aria-hidden className="flex justify-center">
+          <div className="w-3/4 h-2 bg-white rounded-full shadow-md my-10 dark:bg-white" />
+        </div>
+
+        <ForwardedAnimatedSection id="projects" ref={projectsRef} innerClass="max-w-3x1 mx-auto px-6">
+          <h2 id="projects-title" className="text-2xl font-semibold tracking-wider uppercase mb-6">Selected Projects</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map((project, i) => (
               <a
@@ -151,25 +187,29 @@ function App() {
                 style={{ transitionDelay: `${i * 60}ms` }}
               >
                 <div className="mb-4">
-                  <h3 className="text-lg font-semibold">{project.name}</h3>
-                  <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{project.description}</p>
+                  <h3 className="text-lg font-semibold tracking-wider uppercase">{project.name}</h3>
+                  <p className="mt-2 text-sm tracking-wider text-slate-600 dark:text-slate-300">{project.description}</p>
                 </div>
-                <div className="text-sm font-medium text-indigo-600">View →</div>
+                <div className="text-sm font-medium tracking-wider text-indigo-600">View →</div>
               </a>
             ))}
           </div>
         </ForwardedAnimatedSection>
 
-        <ForwardedAnimatedSection id="contact" ref={contactRef} innerClass="max-w-2xl mx-auto px-6">
-          <h2 id="contact-title" className="text-2xl font-semibold mb-4">Get in Touch</h2>
-          <p className="flex gap-3">
-            <a className="text-indigo-600" href="mailto:nipulrj@gmail.com">Email</a>
+        <div aria-hidden className="flex justify-center">
+          <div className="w-3/4 h-2 bg-white rounded-full shadow-md my-10 dark:bg-white" />
+        </div>
+
+        <ForwardedAnimatedSection id="contact" ref={contactRef} innerClass="max-w-3xl mx-auto px-6">
+          <h2 id="contact-title" className="text-2xl font-semibold tracking-wider uppercase mb-4">Get in Touch</h2>
+          <p className="flex gap-5 items-center">
+            <a className="flex items-center text-indigo-600" href="mailto:nipulrj@gmail.com">Email</a>
             <span className="opacity-50">•</span>
-            <a className="text-indigo-600" href="https://github.com/nipulrj" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a className="flex items-center text-indigo-600" href="https://www.linkedin.com/in/nipulrj" target="_blank" rel="noopener noreferrer">LinkedIn</a>
             <span className="opacity-50">•</span>
-            <a className="text-indigo-600" href="https://www.linkedin.com/in/nipulrj" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            <a className="flex items-center text-indigo-600" href="https://github.com/nipulrj" target="_blank" rel="noopener noreferrer">GitHub</a>
             <span className="opacity-50">•</span>
-            <a className="text-indigo-600" href="/resume.pdf" target="_blank" rel="noopener noreferrer" download="Nipul-Jayasekera-Resume.pdf">Resumé</a>
+            <a className="flex items-center text-indigo-600" href="/resume.pdf" target="_blank" rel="noopener noreferrer" download="Nipul-Jayasekera-Resume.pdf">Resume</a>
           </p>
         </ForwardedAnimatedSection>
       </main>

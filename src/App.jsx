@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect, forwardRef } from 'react'
+import profileImg from './assets/profile.jpg';
+import resumeFile from './assets/resume.pdf';
 
 function AnimatedSection({ id, children, innerClass }, forwardedRef) {
   const localRef = useRef(null)
@@ -40,8 +42,6 @@ const ForwardedAnimatedSection = forwardRef(AnimatedSection)
 
 function App() {
   const [activeTab, setActiveTab] = useState('about')
-  const profileImg = '/profile.jpg'
-
   const aboutRef = useRef(null)
   const projectsRef = useRef(null)
   const contactRef = useRef(null)
@@ -209,7 +209,7 @@ function App() {
             <span className="opacity-50">•</span>
             <a className="flex items-center text-indigo-600" href="https://github.com/nipulrj" target="_blank" rel="noopener noreferrer">GitHub</a>
             <span className="opacity-50">•</span>
-            <a className="flex items-center text-indigo-600" href="/resume.pdf" target="_blank" rel="noopener noreferrer" download="Nipul-Jayasekera-Resume.pdf">Resume</a>
+            <a className="flex items-center text-indigo-600" href={resumeFile} target="_blank" rel="noopener noreferrer" download="Nipul-Jayasekera-Resume.pdf">Resume</a>
           </p>
         </ForwardedAnimatedSection>
       </main>
